@@ -31,7 +31,7 @@ def add_film(user_id):
 
     Body:
     {
-        "film_id": <int>
+        "film_id": "<UUID string>"
     }
     """
     data = request.get_json()
