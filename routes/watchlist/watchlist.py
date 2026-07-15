@@ -6,11 +6,18 @@ Endpoints for the watchlist feature.
 
 from flask import Blueprint, jsonify, request
 
+
+
 from services.watchlist_service import (
     add_to_watchlist,
+    remove_from_watchlist,
+    update_watchlist_visibility,
     get_watchlist,
     AlreadyInWatchlistError,
+    NotInWatchlistError,
 )
+
+
 
 from services.collection_service import FilmNotFoundError
 
@@ -51,3 +58,64 @@ def add_film(user_id):
 
     except AlreadyInWatchlistError as error:
         return jsonify({"error": str(error)}), 409
+    
+
+@watchlist_bp.route("/<user_id>/remove", methods=["DELETE"])
+def remove_film(user_id):
+    """
+    DELETE /watchlist/<user_id>/remove
+
+    Body:
+    {
+        "film_id": "<UUID string>"
+    }
+    """
+    data = request.get_json()
+
+    if not data or "film_id" not in data:
+        return jsonify({"error": "film_id is required"}), 400
+
+    try:
+        remove_from_watchlist(
+            user_id=user_id,
+            film_id=data["film_id"],
+        )
+        return jsonify({"message": "Film removed from watchlist"}), 200
+
+    except NotInWatchlistError as error:
+        return jsonify({"error": str(error)}), 404
+
+@watchlist_bp.route("/<user_id>/visibility", methods=["PATCH"])
+def update_visibility(user_id):
+    """
+    PATCH /watchlist/<user_id>/visibility
+
+    Body:
+    {
+        "film_id": "<UUID string>",
+        "public": true
+    }
+    """
+    data = request.get_json()
+
+    if not data or "film_id" not in data or "public" not in data:
+        return jsonify({
+            "error": "film_id and public are required"
+        }), 400
+
+    if not isinstance(data["public"], bool):
+        return jsonify({
+            "error": "public must be true or false"
+        }), 400
+
+    try:
+        entry = update_watchlist_visibility(
+            user_id=user_id,
+            film_id=data["film_id"],
+            public=data["public"],
+        )
+        return jsonify(entry.to_dict()), 200
+
+    except NotInWatchlistError as error:
+        return jsonify({"error": str(error)}), 404
+    
