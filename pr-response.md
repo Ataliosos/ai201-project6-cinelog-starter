@@ -126,10 +126,7 @@ The tests verify:
 
 ## Git Log Screenshot
 
-**Filename:** `project6_git_log.png`
-
-*(Insert screenshot here.)*
-
+![Git Log Screenshot](project6_git_log.png)
 ---
 
 ## Stretch Feature 1 — `remove_from_watchlist()`
